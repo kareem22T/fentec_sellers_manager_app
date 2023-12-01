@@ -1,10 +1,11 @@
 import {
-    StyleSheet, Text, TouchableOpacity, SafeAreaView, View, Image, TextInput, ScrollView, ActivityIndicator
+    StyleSheet, Text, TouchableOpacity, SafeAreaView, View, Image, TextInput, ScrollView, ActivityIndicator, Modal
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { AntDesign, Ionicons, FontAwesome, } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
+import TimerMixin from 'react-timer-mixin';
 
 const BackgroundImage = () => {
     return (
@@ -25,8 +26,25 @@ export default function Profile({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [currentLang, setCurrentLag] = useState('ar')
     const [user, setUser] = useState(null)
+    const [sellers, setSellers] = useState([])
     const [notificationToken, setNotificationToken] = useState('')
     const [token, setToken] = useState('')
+    const [currentSellerId, setCurrentSellerId] = useState(null)
+    const [currentSellerName, setCurrentSellerName] = useState(null)
+    const [showReloadPopUp, setShowReloadPopUp] = useState(false)
+    const [showDeletePopUp, setShowDeletePopUp] = useState(false)
+
+    const handleShowReloadPopUp = (id, name) => {
+        setCurrentSellerId(id)
+        setCurrentSellerName(name)
+        setShowReloadPopUp(true)
+    }
+
+    const handleShowDeletePopUp = (id, name) => {
+        setCurrentSellerId(id)
+        setCurrentSellerName(name)
+        setShowDeletePopUp(true)
+    }
 
     const getStoredToken = async () => {
         const admin_token = await SecureStore.getItemAsync('admin_token');
@@ -68,6 +86,139 @@ export default function Profile({ navigation }) {
         }
     }
 
+    const getSellers = async (token) => {
+        setErrors([])
+        try {
+            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/get-sellers`, {
+                api_password: 'Fentec@scooters.algaria',
+            },
+                {
+                    headers: {
+                        'AUTHORIZATION': `Bearer ${token}`
+                    }
+                },);
+
+            if (response.data.status === true) {
+                setLoading(false);
+                setErrors([]);
+                setSellers(response.data.data);
+            } else {
+                setLoading(false);
+                setErrors(response.data.errors);
+                TimerMixin.setTimeout(() => {
+                    setErrors([]);
+                }, 2000);
+            }
+        } catch (error) {
+            setLoading(false);
+            setErrors(["Server error, try again later."]);
+            console.error(error);
+        }
+    }
+
+    const handleReload = async (token) => {
+        setErrors([])
+        try {
+            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/reload-seller-points`, {
+                api_password: 'Fentec@scooters.algaria',
+                seller_id: currentSellerId,
+            },
+                {
+                    headers: {
+                        'AUTHORIZATION': `Bearer ${token}`
+                    }
+                },);
+
+            if (response.data.status === true) {
+                setErrors([]);
+                getSellers(token);
+                setSuccessMsg(response.data.message);
+                setShowReloadPopUp(false);
+                TimerMixin.setTimeout(() => {
+                    setLoading(false);
+                    setSuccessMsg('')
+                }, 2000);
+            } else {
+                setLoading(false);
+                setErrors(response.data.errors);
+                TimerMixin.setTimeout(() => {
+                    setErrors([]);
+                }, 2000);
+            }
+        } catch (error) {
+            setLoading(false);
+            setErrors(["Server error, try again later."]);
+            console.error(error);
+        }
+    }
+
+    const handleDelete = async (token) => {
+        setErrors([])
+        try {
+            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/delete-seller`, {
+                api_password: 'Fentec@scooters.algaria',
+                seller_id: currentSellerId,
+            },
+                {
+                    headers: {
+                        'AUTHORIZATION': `Bearer ${token}`
+                    }
+                },);
+
+            if (response.data.status === true) {
+                setErrors([]);
+                getSellers(token);
+                setSuccessMsg(response.data.message);
+                setShowDeletePopUp(false);
+                TimerMixin.setTimeout(() => {
+                    setLoading(false);
+                    setSuccessMsg('')
+                }, 2000);
+            } else {
+                setLoading(false);
+                setErrors(response.data.errors);
+                TimerMixin.setTimeout(() => {
+                    setErrors([]);
+                }, 2000);
+            }
+        } catch (error) {
+            setLoading(false);
+            setErrors(["Server error, try again later."]);
+            console.error(error);
+        }
+    }
+
+    const handleSearch = async (search, token) => {
+        setErrors([])
+        try {
+            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/search-seller`, {
+                api_password: 'Fentec@scooters.algaria',
+                search: search,
+            },
+                {
+                    headers: {
+                        'AUTHORIZATION': `Bearer ${token}`
+                    }
+                },);
+
+            if (response.data.status === true) {
+                setLoading(false);
+                setErrors([]);
+                setSellers(response.data.data);
+            } else {
+                setLoading(false);
+                setErrors(response.data.errors);
+                TimerMixin.setTimeout(() => {
+                    setErrors([]);
+                }, 2000);
+            }
+        } catch (error) {
+            setLoading(false);
+            setErrors(["Server error, try again later."]);
+            console.error(error);
+        }
+    }
+
     const [search, setSearch] = useState("");
 
     const [searchFocused, setSarchFocused] = useState(false);
@@ -77,9 +228,14 @@ export default function Profile({ navigation }) {
 
     const showScreens = (user, token) => {
         if (!user) {
-            navigation.navigate('Login')
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+            });
         } else {
-            setLoading(false)
+            getSellers(token).then(() => {
+                setLoading(false)
+            })
         }
     }
 
@@ -102,6 +258,28 @@ export default function Profile({ navigation }) {
     return (
         <SafeAreaView style={[styles.wrapper]}>
             <BackgroundImage></BackgroundImage>
+            <Text style={{
+                position: 'absolute', top: 50, right: 20, color: "#fff",
+                padding: 1 * 16,
+                marginLeft: 10,
+                fontSize: 1 * 16,
+                backgroundColor: '#e41749',
+                fontFamily: 'Outfit_600SemiBold',
+                borderRadius: 1.25 * 16,
+                zIndex: 9999999999,
+                display: errors.length ? 'flex' : 'none'
+            }}>{errors.length ? errors[0] : ''}</Text>
+            <Text style={{
+                position: 'absolute', top: 50, right: 20, color: "#fff",
+                padding: 1 * 16,
+                marginLeft: 10,
+                fontSize: 1 * 16,
+                backgroundColor: '#12c99b',
+                fontFamily: 'Outfit_600SemiBold',
+                borderRadius: 1.25 * 16,
+                zIndex: 9999999999,
+                display: successMsg == '' ? 'none' : 'flex'
+            }}>{successMsg}</Text>
             {loading && (
                 <View style={{
                     width: '100%',
@@ -125,13 +303,14 @@ export default function Profile({ navigation }) {
                     )}
                     <View style={styles.table_wrapper}>
                         <View style={styles.table_head}>
-                            <TouchableOpacity><Text style={styles.add_btn}>Add Seller</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Register', params: { token: token } }] })}><Text style={styles.add_btn}>Add Seller</Text></TouchableOpacity>
                             <TextInput
                                 placeholder={"Search for seller"}
                                 onChangeText={setSearch}
                                 value={search}
                                 onFocus={() => handleSearchFocus()}
                                 onBlur={() => setSarchFocused(false)}
+                                onKeyPress={() => handleSearch(search, token)}
                                 style={[
                                     styles.input,
                                     searchFocused && {
@@ -146,24 +325,87 @@ export default function Profile({ navigation }) {
                             <View style={styles.thead}>
                                 <View style={styles.tr}>
                                     <View style={styles.th}><Text style={styles.th_text}>Seller Name</Text></View>
-                                    <View style={styles.th}><Text style={styles.th_text}>Controls</Text></View>
+                                    <View style={styles.th}><Text style={styles.th_text}>Unbilled points</Text></View>
                                 </View>
                             </View>
-                            <View style={styles.tbody}>
-                                <View style={styles.tr}>
-                                    <View style={[styles.td, styles.td_text_first]}><Text style={styles.td_text}>Kareem Mohamed</Text></View>
-                                    <View style={styles.td}>
-                                        <View>
-                                            <TouchableOpacity><FontAwesome name="edit" size={24} color="black" /></TouchableOpacity>
-                                            <TouchableOpacity><AntDesign name="deleteuser" size={24} color="black" /></TouchableOpacity>
-                                            <TouchableOpacity><Ionicons name="reload" size={24} color="black" /></TouchableOpacity>
-                                        </View>
+                            {sellers.length === 0 &&
+                                (
+                                    <View>
+                                        <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 18, textAlign: 'center' }}>{search ? "No results" : "There are no sellers yet."}</Text>
                                     </View>
-                                </View>
-                            </View>
+                                )}
+
+                            {
+                                sellers.length > 0 &&
+                                (
+                                    <View style={styles.tbody}>
+                                        {sellers.map((seller) => (
+                                            <View style={styles.tr} key={seller.id}>
+                                                <View style={[styles.td, styles.td_text_first]}>
+                                                    <Text style={styles.td_text}>{seller.name}</Text>
+                                                    <View style={{ flexDirection: 'row', gap: 5, marginTop: 5 }}>
+                                                        <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Register', params: { token: token, seller: seller } }] })} style={{ padding: 8, backgroundColor: '#13DEB9', justifyContent: 'center', alignItems: 'center', borderRadius: 5 }}><FontAwesome name="edit" size={22} color="white" /></TouchableOpacity>
+                                                        <TouchableOpacity onPress={() => { handleShowDeletePopUp(seller.id, seller.name) }} style={{ padding: 8, backgroundColor: '#FA896B', justifyContent: 'center', alignItems: 'center', borderRadius: 5 }}><AntDesign name="deleteuser" size={22} color="white" /></TouchableOpacity>
+                                                        <TouchableOpacity onPress={() => { handleShowReloadPopUp(seller.id, seller.name) }} style={{ padding: 8, backgroundColor: '#49BEFF', justifyContent: 'center', alignItems: 'center', borderRadius: 5 }}><Ionicons name="reload" size={22} color="white" /></TouchableOpacity>
+                                                    </View>
+                                                </View>
+                                                <View style={[styles.td, { justifyContent: 'center', alignItems: 'center' }]}>
+                                                    <Text style={styles.td_text}>{seller.unbilled_points}</Text>
+                                                </View>
+                                            </View>
+                                        ))}
+                                    </View>
+                                )
+                            }
                         </View>
                     </View>
                 </View>
+                <Modal
+                    animationType='fade'
+                    transparent={true}
+                    visible={showReloadPopUp}
+                >
+
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <Text style={{ fontFamily: "Outfit_600SemiBold", fontSize: 20, textAlign: 'center', marginBottom: 20 }}>
+                                هل ان متاكد من اعادة نقاط {currentSellerName} الي الصفر
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'end', gap: 20, }}>
+                                <TouchableOpacity onPress={() => setShowReloadPopUp(false)} style={{ backgroundColor: '#c2c2c2', paddingTop: 5, paddingBottom: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 5, width: 80, alignItems: 'center' }}>
+                                    <Text>الغاء</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleReload(token)} style={{ backgroundColor: '#ff7300', paddingTop: 5, paddingBottom: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 5, width: 80, alignItems: 'center', color: '#fff' }}>
+                                    <Text style={{ color: '#fff' }}>اعادة</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+
+                </Modal>
+                <Modal
+                    animationType='fade'
+                    transparent={true}
+                    visible={showDeletePopUp}
+                >
+
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <Text style={{ fontFamily: "Outfit_600SemiBold", fontSize: 20, textAlign: 'center', marginBottom: 20 }}>
+                                هل ان متاكد من حذف حساب {currentSellerName} نهائيا
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'end', gap: 20, }}>
+                                <TouchableOpacity onPress={() => setShowDeletePopUp(false)} style={{ backgroundColor: '#c2c2c2', paddingTop: 5, paddingBottom: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 5, width: 80, alignItems: 'center' }}>
+                                    <Text>الغاء</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleDelete(token)} style={{ backgroundColor: '#FA896B', paddingTop: 5, paddingBottom: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 5, width: 80, alignItems: 'center', color: '#fff' }}>
+                                    <Text style={{ color: '#fff' }}>حذف</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+
+                </Modal>
             </ScrollView>
         </SafeAreaView >
     );
@@ -196,6 +438,29 @@ const styles = StyleSheet.create({
         lineHeight: 1.5 * 16,
         textAlign: 'center',
         marginTop: 90
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignContent: 'center',
+        marginTop: 22,
+        backgroundColor: 'rgba(0, 0, 0, .5)'
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        width: '90%',
+        padding: 18,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
     },
     approvingAlert: {
         padding: 15,

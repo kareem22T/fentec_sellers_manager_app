@@ -11,6 +11,7 @@ const Stack = createNativeStackNavigator();
 // screens 
 import Home from './screens/homeScreen'
 import LoginScreen from './screens/loginScreen';
+import Register from './screens/registerScreen';
 
 export default function App() {
   let [fontsLoaded, fontError] = useFonts({
@@ -35,6 +36,11 @@ export default function App() {
         <Stack.Screen
           name="Login"
           component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={Register}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
