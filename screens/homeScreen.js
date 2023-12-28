@@ -58,7 +58,7 @@ export default function Profile({ navigation }) {
     const getUser = async (token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/get-admin`, {
+            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/get-admin`, {
                 api_password: 'Fentec@scooters.algaria',
             },
                 {
@@ -89,7 +89,7 @@ export default function Profile({ navigation }) {
     const getSellers = async (token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/get-sellers`, {
+            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/get-sellers`, {
                 api_password: 'Fentec@scooters.algaria',
             },
                 {
@@ -119,7 +119,7 @@ export default function Profile({ navigation }) {
     const handleReload = async (token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/reload-seller-points`, {
+            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/reload-seller-points`, {
                 api_password: 'Fentec@scooters.algaria',
                 seller_id: currentSellerId,
             },
@@ -155,7 +155,7 @@ export default function Profile({ navigation }) {
     const handleDelete = async (token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/delete-seller`, {
+            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/delete-seller`, {
                 api_password: 'Fentec@scooters.algaria',
                 seller_id: currentSellerId,
             },
@@ -191,7 +191,7 @@ export default function Profile({ navigation }) {
     const handleSearch = async (search, token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/search-seller`, {
+            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/search-seller`, {
                 api_password: 'Fentec@scooters.algaria',
                 search: search,
             },

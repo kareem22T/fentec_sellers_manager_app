@@ -107,7 +107,7 @@ export default function Register({ navigation, route }) {
         setLoading(true)
         setErrors([])
         try {
-            const response = await axios.post(`https://047b-197-37-181-88.ngrok-free.app/admin/` + (route.params.seller ? "update-seller" : "create-seller"), {
+            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/` + (route.params.seller ? "update-seller" : "create-seller"), {
                 seller_id: route.params.seller ? route.params.seller.id : null,
                 name: name,
                 address: address,
