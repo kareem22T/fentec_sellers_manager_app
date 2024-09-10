@@ -1,11 +1,10 @@
-import {
-    StyleSheet, Text, TouchableOpacity, SafeAreaView, View, Image, TextInput, ScrollView, ActivityIndicator
-} from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { ScrollView, View, Text, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, Image } from 'react-native';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { AntDesign } from '@expo/vector-icons';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import TimerMixin from 'react-timer-mixin';
 import * as SecureStore from 'expo-secure-store';
-import { AntDesign } from '@expo/vector-icons';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const BackgroundImage = () => {
@@ -23,6 +22,12 @@ const BackgroundImage = () => {
 
 export default function Register({ navigation, route }) {
     const [currentLang, setCurrentLag] = useState('en')
+    const [region, setRegion] = React.useState({
+        latitude: null,
+        longitude: null,
+        latitudeDelta: null,
+        longitudeDelta: null
+    })
     const translations = {
         "en": {
             "head": "already have an account?",
@@ -107,10 +112,12 @@ export default function Register({ navigation, route }) {
         setLoading(true)
         setErrors([])
         try {
-            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/` + (route.params.seller ? "update-seller" : "create-seller"), {
+            const response = await axios.post(`https://adminandapi.fentecmobility.com/admin/` + (route.params.seller ? "update-seller" : "create-seller"), {
                 seller_id: route.params.seller ? route.params.seller.id : null,
                 name: name,
                 address: address,
+                longitude: region.longitude,
+                latitude: region.latitude,
                 email: email,
                 phone: phone,
                 password: password,
@@ -149,11 +156,12 @@ export default function Register({ navigation, route }) {
         const offsetY = event.nativeEvent.contentOffset.y;
         setScrollY(offsetY);
     };
+
     useEffect(() => {
     }, []);
 
     return (
-        <ScrollView style={styles.wrapper}>
+        <View style={styles.wrapper}>
             <BackgroundImage></BackgroundImage>
             <Text style={{
                 position: 'absolute', top: scrollY + 50, right: 20, color: "#fff",
@@ -217,7 +225,7 @@ export default function Register({ navigation, route }) {
                         ]}
 
                     />
-                    <TextInput
+                    {/* <TextInput
                         placeholder={"Address"}
                         onChangeText={setAddress}
                         value={address}
@@ -234,8 +242,52 @@ export default function Register({ navigation, route }) {
                             },
                         ]}
 
-                    />
-                    <TextInput
+                    /> */}
+                                <View style={styles.head}>
+                <GooglePlacesAutocomplete
+                    placeholder="Address"
+                    fetchDetails={true}
+                    GooglePlacesSearchQuery={{
+                        rankby: "distance"
+                    }}
+                    onPress={(data, details = null) => {
+                        // 'details' is provided when fetchDetails = true
+                        setAddress(data.description)
+                        setRegion({
+                            latitude: details.geometry.location.lat,
+                            longitude: details.geometry.location.lng,
+                            latitudeDelta: 0.02,
+                            longitudeDelta: 0.002
+                        })
+                    }}
+                    query={{
+                        key: "AIzaSyD92ePxBG5Jk6mM3djSW49zs3dRKJroWRk",
+                        types: "address",
+                        radius: 30000,
+                        location: `${region.latitude}, ${region.longitude}`
+                    }}
+                    styles={{
+                        container: [styles.input, {padding: 12}],
+                        listView: { backgroundColor: "white" },
+                        textInput: {
+                            fontSize: 20, // Set the font size
+                            color: 'black', // Set the text color
+                            fontFamily: 'Outfit_600SemiBold', // Use custom fonts if needed
+                            padding: 10, // Adjust padding inside the text input
+                            borderRadius: 5 // Round the corners
+                        }
+                    }}
+                />
+                {/* <View style={[styles.input, { width: 'auto', padding: 18, height: 60, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 15 }]}>
+                    <FontAwesome5 name="coins" size={24} color="rgba(255, 199, 0, 1)" />
+                    {user && (
+                        <Text style={{ fontSize: 18, fontFamily: 'Outfit_600SemiBold', }}>{user.coins}</Text>
+                    )}
+                </View> */}
+            </View>
+
+        
+                        <TextInput
                         placeholder={screenContent.email_e}
                         onChangeText={setEmail}
                         value={email}
@@ -317,7 +369,7 @@ export default function Register({ navigation, route }) {
                     <Text style={styles.button_text}>{screenContent.register}</Text>
                 </TouchableOpacity>
             </View>
-        </ScrollView>
+        </View>
     );
 }
 
@@ -367,6 +419,19 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         width: "95%",
     },
+    head: {
+        // position: 'absolute',
+        // top: 30,
+        // padding: 20,
+        left: 0,
+        width: '95%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'start',
+        zIndex: 555,
+        gap: 10
+    },
+
     button: {
         padding: 18,
         borderRadius: 1.25 * 16,

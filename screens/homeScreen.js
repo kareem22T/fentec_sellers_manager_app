@@ -58,7 +58,7 @@ export default function Profile({ navigation }) {
     const getUser = async (token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/get-admin`, {
+            const response = await axios.post(`https://adminandapi.fentecmobility.com/admin/get-admin`, {
                 api_password: 'Fentec@scooters.algaria',
             },
                 {
@@ -89,7 +89,7 @@ export default function Profile({ navigation }) {
     const getSellers = async (token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/get-sellers`, {
+            const response = await axios.post(`https://adminandapi.fentecmobility.com/admin/get-sellers`, {
                 api_password: 'Fentec@scooters.algaria',
             },
                 {
@@ -119,7 +119,7 @@ export default function Profile({ navigation }) {
     const handleReload = async (token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/reload-seller-points`, {
+            const response = await axios.post(`https://adminandapi.fentecmobility.com/admin/reload-seller-points`, {
                 api_password: 'Fentec@scooters.algaria',
                 seller_id: currentSellerId,
             },
@@ -155,7 +155,7 @@ export default function Profile({ navigation }) {
     const handleDelete = async (token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/delete-seller`, {
+            const response = await axios.post(`https://adminandapi.fentecmobility.com/admin/delete-seller`, {
                 api_password: 'Fentec@scooters.algaria',
                 seller_id: currentSellerId,
             },
@@ -191,7 +191,7 @@ export default function Profile({ navigation }) {
     const handleSearch = async (search, token) => {
         setErrors([])
         try {
-            const response = await axios.post(`https://3051-102-47-220-241.ngrok-free.app/admin/search-seller`, {
+            const response = await axios.post(`https://adminandapi.fentecmobility.com/admin/search-seller`, {
                 api_password: 'Fentec@scooters.algaria',
                 search: search,
             },
@@ -301,6 +301,13 @@ export default function Profile({ navigation }) {
                     {user && (
                         <Text style={styles.title}>Hello, {user.full_name}</Text>
                     )}
+                    <TouchableOpacity onPress={() => {navigation.push('History')}}><Text style={{
+                        color: 'rgba(255, 115, 0, 1)',
+                        fontFamily: "Outfit_700Bold",
+                        textAlign: 'center',
+                        fontSize: 14,
+                        marginTop: 16
+                    }}>Transactions History</Text></TouchableOpacity>
                     <View style={styles.table_wrapper}>
                         <View style={styles.table_head}>
                             <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Register', params: { token: token } }] })}><Text style={styles.add_btn}>Add Seller</Text></TouchableOpacity>

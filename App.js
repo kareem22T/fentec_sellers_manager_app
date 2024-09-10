@@ -12,6 +12,7 @@ const Stack = createNativeStackNavigator();
 import Home from './screens/homeScreen'
 import LoginScreen from './screens/loginScreen';
 import Register from './screens/registerScreen';
+import History from './screens/transactionsScreen';
 
 export default function App() {
   let [fontsLoaded, fontError] = useFonts({
@@ -31,6 +32,11 @@ export default function App() {
         <Stack.Screen
           name="Home"
           component={Home}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="History"
+          component={History}
           options={{ headerShown: false }}
         />
         <Stack.Screen
